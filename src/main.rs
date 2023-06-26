@@ -1,10 +1,17 @@
 use std::{error::Error, io};
 
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, disable_raw_mode, LeaveAlternateScreen}, event::{Event, self, KeyCode, EnableMouseCapture, DisableMouseCapture}, execute};
+use crossterm::{
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
 use tui::{
-    Frame,
     backend::{Backend, CrosstermBackend},
-    layout::{Layout, Direction, Constraint}, widgets::{Block, Tabs, Borders}, style::{Style, Color, Modifier}, text::{Spans, Span}, Terminal,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::{Span, Spans},
+    widgets::{Block, Borders, Tabs},
+    Frame, Terminal,
 };
 
 struct App<'a> {
@@ -102,10 +109,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
         .block(Block::default().borders(Borders::ALL).title("Tabs"))
         .select(app.index)
         .style(Style::default().fg(Color::Cyan))
-        .highlight_style(
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-        );
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD));
     f.render_widget(tabs, chunks[0]);
     let inner = match app.index {
         0 => Block::default().title("Inner 0").borders(Borders::ALL),
