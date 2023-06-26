@@ -5,7 +5,7 @@ A fast and simple TUI (Text User Interface) for GitHub.
 ```bash
 $ git clone https://github.com/mazylol/ght.git
 $ cd ght
-$ cargo isntall --path .
+$ cargo install --path .
 ```
 
 ## Usage
