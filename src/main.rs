@@ -1,4 +1,4 @@
-use std::{error::Error, io};
+use std::{error::Error, io, time::{Duration, Instant}};
 
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -27,6 +27,10 @@ impl<'a> App<'a> {
         }
     }
 
+    pub fn on_tick(&mut self) {
+        self.next();
+    }
+
     pub fn next(&mut self) {
         self.index = (self.index + 1) % self.titles.len();
     }
@@ -47,8 +51,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
+    let tick_rate = Duration::from_millis(5000);
+
     let app = App::new();
-    let res = run_app(&mut terminal, app);
+    let res = run_app(&mut terminal, app, tick_rate);
 
     disable_raw_mode()?;
     execute!(
@@ -65,11 +71,36 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App, tick_rate: Duration) -> io::Result<()> {
+    let mut last_tick = Instant::now();
     loop {
         terminal.draw(|f| ui(f, &app))?;
 
-        if let Event::Key(key) = event::read()? {
+        let timeout = tick_rate
+            .checked_sub(last_tick.elapsed())
+            .unwrap_or_else(|| Duration::from_secs(0));
+
+        if crossterm::event::poll(timeout)? {
+            if let Event::Key(key) = event::read()? {
+                match key.code {
+                    KeyCode::Char('q') => return Ok(()),
+                    KeyCode::Right => app.next(),
+                    KeyCode::Left => app.previous(),
+                    KeyCode::Char('o') => app.index = 0,
+                    KeyCode::Char('i') => app.index = 1,
+                    KeyCode::Char('p') => app.index = 2,
+                    KeyCode::Char('a') => app.index = 3,
+                    _ => {}
+                }
+            }
+        }
+
+        if last_tick.elapsed() >= tick_rate {
+            app.on_tick();
+            last_tick = Instant::now();
+        }
+
+        /*if let Event::Key(key) = event::read()? {
             match key.code {
                 KeyCode::Char('q') => return Ok(()),
                 KeyCode::Right => app.next(),
@@ -80,7 +111,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                 KeyCode::Char('a') => app.index = 3,
                 _ => {}
             }
-        }
+        }*/
     }
 }
 
