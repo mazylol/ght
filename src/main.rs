@@ -1,4 +1,8 @@
-use std::{error::Error, io, time::{Duration, Instant}};
+use std::{
+    error::Error,
+    io,
+    time::{Duration, Instant},
+};
 
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -13,6 +17,9 @@ use tui::{
     widgets::{Block, Borders, Tabs},
     Frame, Terminal,
 };
+use types::data::{Config, FileHandler, FileType};
+
+mod types;
 
 struct App<'a> {
     pub titles: Vec<&'a str>,
@@ -71,7 +78,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App, tick_rate: Duration) -> io::Result<()> {
+fn run_app<B: Backend>(
+    terminal: &mut Terminal<B>,
+    mut app: App,
+    tick_rate: Duration,
+) -> io::Result<()> {
     let mut last_tick = Instant::now();
     loop {
         terminal.draw(|f| ui(f, &app))?;
@@ -99,19 +110,6 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App, tick_rate: Dura
             app.on_tick();
             last_tick = Instant::now();
         }
-
-        /*if let Event::Key(key) = event::read()? {
-            match key.code {
-                KeyCode::Char('q') => return Ok(()),
-                KeyCode::Right => app.next(),
-                KeyCode::Left => app.previous(),
-                KeyCode::Char('o') => app.index = 0,
-                KeyCode::Char('i') => app.index = 1,
-                KeyCode::Char('p') => app.index = 2,
-                KeyCode::Char('a') => app.index = 3,
-                _ => {}
-            }
-        }*/
     }
 }
 
