@@ -17,11 +17,13 @@ use tui::{
     widgets::{Block, Borders, Tabs},
     Frame, Terminal,
 };
-use types::data::{Config, FileHandler, FileType};
+use types::save::{Config, Cache};
 
 mod types;
 
 struct App<'a> {
+    pub config: Config,
+    pub cache: Cache,
     pub titles: Vec<&'a str>,
     pub index: usize,
 }
@@ -29,6 +31,8 @@ struct App<'a> {
 impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
+            config: Config::open(),
+            cache: Cache::open(),
             titles: vec!["Overview", "Issues", "Pull Requests", "Actions"],
             index: 0,
         }

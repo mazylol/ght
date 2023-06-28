@@ -22,29 +22,12 @@ pub struct Repo {
     pub owner: String,
 }
 
-pub trait FileHandler {
-    fn open(filetype: FileType) -> Self;
-    fn save(&self, filetype: FileType);
-}
-
-pub enum FileType {
-    #[allow(dead_code)]
-    Config,
-    #[allow(dead_code)]
-    Cache,
-}
-
-impl FileHandler for Config {
-    fn open(filetype: FileType) -> Self {
-        let file_name = match filetype {
-            FileType::Config => "config.json",
-            FileType::Cache => "cache.json",
-        };
-
+impl Config {
+    pub fn open() -> Self {
         let path = ProjectDirs::from("com", "mazylol", "ght")
             .unwrap()
             .config_dir()
-            .join(file_name);
+            .join("config.json");
         let file = File::open(&path);
         if file.is_err() {
             fs::create_dir_all(&path.parent().unwrap()).unwrap();
@@ -65,17 +48,33 @@ impl FileHandler for Config {
             return config;
         }
     }
+}
 
-    fn save(&self, filetype: FileType) {
-        let file_name = match filetype {
-            FileType::Config => "config.json",
-            FileType::Cache => "cache.json",
-        };
-        
+impl Cache {
+    pub fn open() -> Self {
         let path = ProjectDirs::from("com", "mazylol", "ght")
             .unwrap()
             .config_dir()
-            .join(file_name);
+            .join("cache.json");
+        let file = File::open(&path);
+        if file.is_err() {
+            fs::create_dir_all(&path.parent().unwrap()).unwrap();
+            let mut file = File::create(&path).unwrap();
+            let cache = Cache { repos: vec![] };
+            let json = serde_json::to_string_pretty(&cache).unwrap();
+            file.write_all(json.as_bytes()).unwrap();
+            return cache;
+        } else {
+            let cache: Cache = serde_json::from_reader(file.unwrap()).unwrap();
+            return cache;
+        }
+    }
+
+    pub fn save(&self) {
+        let path = ProjectDirs::from("com", "mazylol", "ght")
+            .unwrap()
+            .config_dir()
+            .join("cache.json");
         let mut file = File::create(&path).unwrap();
         let json = serde_json::to_string_pretty(&self).unwrap();
         file.write_all(json.as_bytes()).unwrap();
